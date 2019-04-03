@@ -27,9 +27,12 @@ namespace Chat
             myIp = address.ToString();
             myPort = args[0];
 
-            //Console.WriteLine(System.Net.IPAddress.Loopback);
             TcpListener listenSocket = new TcpListener(address, int.Parse(myPort));
             listenSocket.Start();
+
+            Console.WriteLine("Welcome To Chat Using Sockets!");
+            Console.WriteLine("Listening on: " + myIp + ":" + myPort);
+            Console.Write(">> ");
 
             new Thread(HandleCommandLine).Start();
 
@@ -38,7 +41,7 @@ namespace Chat
                 TcpClient newConnection = listenSocket.AcceptTcpClient();
                 if (newConnection != null)
                 {
-                    Console.WriteLine("Incoming Connection from " + newConnection.Client.RemoteEndPoint.ToString());
+                    Console.WriteLine("\nIncoming Connection from " + newConnection.Client.RemoteEndPoint.ToString());
                     lock (_lock)
                     {
 
@@ -46,8 +49,23 @@ namespace Chat
                         KeyValuePair<int, TcpClient> pair = new KeyValuePair<int, TcpClient>(connectionCount, newConnection);
                         new Thread(HandleConnection).Start(pair);
                     }
+                    Console.Write(">> ");
                 }
 
+            }
+        }
+
+        static void Exit(int exitCode)
+        {
+            lock (_lock)
+            {
+                foreach (var connection in connections)
+                {
+                    Console.WriteLine("\nTerminating connection ID: " + connection.Key);
+                    connection.Value.Close();
+                }
+                Console.WriteLine("\nGoodbye!");
+                Environment.Exit(exitCode);
             }
         }
 
@@ -77,7 +95,8 @@ namespace Chat
 
                 if (readMessageSize <= 0)
                 {
-                    Console.WriteLine("Connection with ID: " + pair.Key + " was terminated.");
+                    Console.WriteLine("\nConnection with ID: " + pair.Key + " was terminated.");
+                    Console.Write(">> ");
                     break;
                 }
 
@@ -88,9 +107,10 @@ namespace Chat
                     if (b == 4)
                     {
 
-                        Console.WriteLine("Message received from " + ip_port[0]);
+                        Console.WriteLine("\nMessage received from " + ip_port[0]);
                         Console.WriteLine("Sender's Port: " + ip_port[1]);
                         Console.WriteLine("Message: \"" + new ASCIIEncoding().GetString(currentMessage.ToArray()) + "\"");
+                        Console.Write(">> ");
                         currentMessage.Clear();
                     }
                     else
@@ -115,7 +135,7 @@ namespace Chat
                 switch (split[0])
                 {
                     case "exit":
-                        Environment.Exit(1);
+                        Exit(1);
                         break;
 
                     case "help":
@@ -130,14 +150,17 @@ namespace Chat
                             "\n> terminate <connection id>" +
                             "\n> send <connection id> <message>\n"
                             );
+                        Console.Write(">> ");
                         break;
 
                     case "myip":
                         Console.WriteLine("Local IP Address: " + myIp);
+                        Console.Write(">> ");
                         break;
 
                     case "myport":
                         Console.WriteLine("Listening on Port: " + myPort);
+                        Console.Write(">> ");
                         break;
 
                     case "connect":
@@ -158,6 +181,7 @@ namespace Chat
                                 }
                             }
                         }
+                        Console.Write(">> ");
                         break;
 
                     case "list":
@@ -167,6 +191,7 @@ namespace Chat
                             string[] ip_port = connection.Value.Client.RemoteEndPoint.ToString().Split(':');
                             Console.WriteLine(connection.Key + ":\t" + ip_port[0] + "\t\t" + ip_port[1]);
                         }
+                        Console.Write("\n>> ");
                         break;
 
                     case "terminate":
@@ -186,6 +211,7 @@ namespace Chat
                                 }
                             }
                         }
+                        Console.Write(">> ");
                         break;
 
                     case "send":
@@ -205,9 +231,11 @@ namespace Chat
                                 Console.WriteLine(e.Message);
                             }
                         }
+                        Console.Write(">> ");
                         break;
 
                     default:
+                        Console.Write(">> ");
                         break;
                 }
             }
