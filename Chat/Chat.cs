@@ -169,14 +169,22 @@ namespace Chat
                             {
                                 lock (_lock)
                                 {
-                                    TcpClient newConnection = new TcpClient(split[1], int.Parse(split[2]));
-                                    if (newConnection != null)
+                                    try
                                     {
-                                        Console.WriteLine("Connected to " + split[1] + ":" + split[2]);
+                                        TcpClient newConnection = new TcpClient(split[1], int.Parse(split[2]));
+                                        if (newConnection != null)
+                                        {
+                                            Console.WriteLine("Connected to " + split[1] + ":" + split[2]);
 
-                                        connections.Add(++connectionCount, newConnection);
-                                        KeyValuePair<int, TcpClient> pair = new KeyValuePair<int, TcpClient>(connectionCount, newConnection);
-                                        new Thread(HandleConnection).Start(pair);
+                                            connections.Add(++connectionCount, newConnection);
+                                            KeyValuePair<int, TcpClient> pair = new KeyValuePair<int, TcpClient>(connectionCount, newConnection);
+                                            new Thread(HandleConnection).Start(pair);
+                                        }
+                                    }
+                                    catch (Exception err)
+                                    {
+
+                                        Console.WriteLine("Error - Unable to Connect: " + err.Message);
                                     }
                                 }
                             }
