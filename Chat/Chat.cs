@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Chat
 {
-    class Program
+    class Chat
     {
         static IPHostEntry host;
 
